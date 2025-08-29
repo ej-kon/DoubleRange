@@ -1,0 +1,150 @@
+body {
+	padding: 0px;
+	margin: 10px;
+	color: #030303;
+	font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif;
+	background-color: #ffffff;
+	overflow-y: scroll;
+    letter-spacing: 0.2px;	
+    font-size: 0px;
+    line-height: 0px;
+}
+
+
+h1
+{
+	font-size: 17px;
+	line-height: 21px;
+}
+
+h2 
+{
+	font-size: 16px;
+	line-height: 18px;
+	font-weight: normal;
+}
+
+h3 {
+    font-size: 15px;
+    line-height: 19px;
+    background-color: #f3f5f5;
+    margin: 20px 0px 0px;
+    padding: 0px 0px 0px 5px;
+    line-height: 30px;
+    border-bottom: 1px solid;
+    color: #002255;
+}
+
+pre
+{
+	margin: 0px;
+	padding: 5px 0px 0px 0px;
+	display: block;
+	font-size: 13px;
+	line-height: 15px;
+	tab-size: 2;
+	position: relative;
+}
+
+pre::before {
+    display: inline-block;
+    position: absolute;
+    left: 4px;
+    top: 7px;
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: bold;
+}
+
+pre.html
+{
+	background-color: #f1f7f1;	
+}
+
+pre.html::before
+{
+	content:"HTML:";
+	color:#55aa55;
+}
+
+pre.js
+{
+	background-color: #f1f1f7;
+}
+
+pre.js::before
+{
+	content:"JS:";
+	color:#5555aa;	
+}
+
+pre.css
+{
+	background-color: #f7f1f1;
+}
+
+pre.css::before
+{
+	content:"CSS:";
+	color:#aa5555;	
+}
+
+
+#slider-2 .double-range { 
+	--thumb-from-bg: #145056; 
+	--thumb-to-bg: #95be08; 
+	--range-bar-bg: linear-gradient(to right, #0c2e32, #145056);
+	--thumb-size: 20px;
+	/* custom padding , calc(var(--thumb-size) / 2) is the max for 100% width*/
+    padding: 30px calc(var(--thumb-size) / 2);
+    overflow: visible;
+}
+
+#slider-2 .double-range label
+{
+	font-size: 13px;
+	color:#222222;
+	padding: 0px;
+}
+
+#slider-3 .double-range { 
+	--thumb-from-bg: #003377; 
+	--thumb-to-bg: #005599; 
+	--range-bar-bg: linear-gradient(to right, #003377, #005599);
+	padding: 40px calc(var(--thumb-size) / 2);
+	--thumb-size: 30px;
+	overflow: visible;
+}
+
+#slider-3 .double-range label
+{
+	font-size: 13px;
+	color:#222222;
+	padding: 0px;
+}	
+
+#slider-3 .double-range .point {
+    display: none;
+}
+
+#slider-3 .double-range .track
+{
+	background: none;
+	box-shadow: inherit;
+}
+
+/* instead of the track line */
+#slider-3 .double-range::before {
+    position: absolute;
+    display: inline-block;
+    content: "";
+    left: 0px;
+    top: calc(50% - 5px);
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(to right, #e1e3e7, #f1f3f7);
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 0px 1px 1px rgba(100, 100, 100, 0.2);
+}
+

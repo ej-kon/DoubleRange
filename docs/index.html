@@ -6,9 +6,167 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="description" content="Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/touch support, ARIA compliance, customizable styling, and programmatic API (callback, update, before change and more)." />
 <meta name="viewport" content="width=device-width">
+<script src="DoubleRange.min.js"></script>
+<link rel="stylesheet" href="DoubleRange.min.css">
+<script src="demo.js"></script>
+<link rel="stylesheet" href="demo.css">
 </head>
 <body>
 <h1>DoubleRange - Vanilla JavaScript Dual-Thumb Range Slider - DEMO page</h1>
 <h2><a href="https://github.com/ej-kon/DoubleRange">https://github.com/ej-kon/DoubleRange</a></h2>
+
+<div>
+	<h3>Example 1. Basic</h3>
+		<pre class="html">
+			&lt;div id="slider-1">&lt;/div>	
+		</pre>
+		<pre class="js">
+			const formatterFn = (v) => `$ ${v}`;
+			const callbackFn = (from,to) => {console.log(`example1 from:${from} to:${to}`)};
+			const slider = DoubleRange.create({
+						selector: "#slider-1",
+						min: 30,
+						max: 500,
+						from: 100,
+						to: 400,
+						step: 1,
+						label: 'Example 1',
+						formatter: formatterFn,
+						delay: 300,
+						callback: callbackFn
+			});
+		</pre>
+		<div id="slider-1"></div>
+</div>
+<div>
+	<h3>Example 2. Basic CSS customization</h3>
+		<pre class="html">
+			&lt;div id="slider-2">&lt;/div>	
+		</pre>
+		<pre class="js">
+			const toEuro = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
+			const callbackFn = (from,to) => {console.log(`example2 from:${from} to:${to}`)};
+			const slider = DoubleRange.create({
+						selector: "#slider-2",
+						min: 1015,
+						max: 23050,
+						from: 10000,
+						to: 20000,
+						step: 1,
+						label: 'Example 2',
+						formatter: toEuro,
+						delay: 500,
+						callback: callbackFn
+			});
+		</pre>
+		<pre class="css">
+			#slider-2 .double-range { 
+				--thumb-from-bg: #145056; 
+				--thumb-to-bg: #95be08; 
+				--range-bar-bg: linear-gradient(to right, #0c2e32, #145056);
+				--thumb-size: 20px;
+				/* custom padding , calc(var(--thumb-size) / 2) is the max for 100% width*/
+				padding: 30px calc(var(--thumb-size) / 2);
+				overflow: visible;
+			}
+			
+			#slider-2 .double-range label
+			{
+				font-size: 13px;
+				color:#222222;
+				padding: 0px;
+			}		
+		</pre>
+		<div id="slider-2"></div>
+</div>
+
+<div>
+	<h3>Example 3. CSS:Without start and end point JS:ensure that from and to have at least 100 distance </h3>
+		<pre class="html">
+			&lt;div id="slider-3">&lt;/div>	
+		</pre>
+		<pre class="js">
+			let slider = null;
+			const beforeFromChangeFn = (from, to) => {
+				if (to - from < 100) {
+					slider.setFrom(to - 100);
+					return false;
+				}
+				return true;
+			};
+			const beforeToChangeFn = (from, to) => {
+				if (to - from < 100) {
+					slider.setTo(from + 100);
+					return false;
+				}
+				return true;
+			};
+			const formatterFn = (v) => `$ ${v}`;
+			const callbackFn = (from, to) => { console.log(`example3 from:${from} to:${to}`) };
+			slider = DoubleRange.create({
+				selector: "#slider-3",
+				min: 30,
+				max: 500,
+				from: 100,
+				to: 400,
+				step: 1,
+				label: 'Example 3',
+				formatter: formatterFn,
+				beforeFromChange:beforeFromChangeFn,
+				beforeToChange:beforeToChangeFn,
+				delay: 250,
+				callback: callbackFn
+			});
+		</pre>
+		<pre class="css">
+			#slider-3 .double-range { 
+				--thumb-from-bg: #003377; 
+				--thumb-to-bg: #005599; 
+				--range-bar-bg: linear-gradient(to right, #003377, #005599);
+				padding: 40px calc(var(--thumb-size) / 2);
+				--thumb-size: 30px;
+				overflow: visible;
+			}
+			
+			#slider-3 .double-range label
+			{
+				font-size: 13px;
+				color:#222222;
+				padding: 0px;
+			}	
+			
+			#slider-3 .double-range .point {
+			    display: none;
+			}
+			
+			#slider-3 .double-range .track
+			{
+				background: none;
+				box-shadow: inherit;
+			}
+			
+			/* instead of the track line */
+			#slider-3 .double-range::before {
+			    position: absolute;
+			    display: inline-block;
+			    content: "";
+			    left: 0px;
+			    top: calc(50% - 5px);
+			    width: 100%;
+			    height: 10px;
+			    background: linear-gradient(to right, #e1e3e7, #f1f3f7);
+			    border-radius: 5px;
+			    cursor: pointer;
+			    box-shadow: 0px 0px 1px 1px rgba(100, 100, 100, 0.2);
+			}
+		</pre>
+		<div id="slider-3"></div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      demo.init();
+  });
+</script>
 </body>
 </html>

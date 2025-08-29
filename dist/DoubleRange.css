@@ -1,11 +1,11 @@
 /* Base container */
 .double-range { 
-	--thumb-from-bg: #007cba; 
-	--thumb-to-bg: #007cba; 
-	--range-bar-bg: #007cba; 
+	--thumb-from-bg: #c1c1c1; 
+	--thumb-to-bg: #e1e1e1; 
+	--range-bar-bg: linear-gradient(to right, #c1c1c1, #e1e1e1); 
 	--thumb-size: 20px;
 	width: 100%;
-	padding: 0px calc(var(--thumb-size)+ 10px);
+	padding: calc(var(--thumb-size) + 10px) calc(var(--thumb-size) + 10px);
 	box-sizing: border-box;
 	margin: auto;
 	overflow: hidden;
