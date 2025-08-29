@@ -28,8 +28,8 @@ Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/tou
 ### Manual download:
 Download the latest release and include the JS and CSS files:
 ```html
-<script src="doublerange.min.js"></script>
-<link rel="stylesheet" href="doublerange.min.css">
+<script src="double-range.min.js"></script>
+<link rel="stylesheet" href="double-range.min.css">
 ```
 
 ## Usage

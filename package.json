@@ -1,0 +1,36 @@
+{
+  "name": "double-range",
+  "version": "1.0.2",
+  "description": "Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/touch support, ARIA compliance, customizable styling, and programmatic API",
+  "main": "dist/double-range.min.js",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"Build script not configured\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ej-kon/DoubleRange.git"
+  },
+  "keywords": [
+    "range",
+    "slider",
+    "double",
+    "dual",
+    "thumb",
+    "accessibility",
+    "aria",
+    "vanilla",
+    "javascript",
+    "ui",
+    "component"
+  ],
+  "author": "ej-kon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ej-kon/DoubleRange/issues"
+  },
+  "homepage": "https://github.com/ej-kon/DoubleRange#readme"
+}
