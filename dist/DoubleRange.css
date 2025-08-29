@@ -1,0 +1,191 @@
+/* Base container */
+.double-range { 
+	--thumb-from-bg: #007cba; 
+	--thumb-to-bg: #007cba; 
+	--range-bar-bg: #007cba; 
+	--thumb-size: 20px;
+	width: 100%;
+	padding: 0px calc(var(--thumb-size)+ 10px);
+	box-sizing: border-box;
+	margin: auto;
+	overflow: hidden;
+	position: relative;
+}
+
+.double-range>div {
+	position: relative;
+	width: 100%;
+	box-sizing: border-box;
+	padding: calc(var(--thumb-size)+ 10px) 0px;
+	user-select: none;
+	touch-action: none;
+	z-index: 2;
+}
+
+/* Labels for from/to values */
+.double-range label {
+	position: absolute;
+	display: inline-block;
+	top: calc(50% - var(--thumb-size));
+	font-size: 14px;
+	height: 14px;
+	line-height: 14px;
+	color: #333;
+	border-radius: 4px;
+	white-space: nowrap;
+	z-index: 2;
+	pointer-events: none;
+	left: 0;
+	transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+}
+
+.double-range label.from::after {
+	display: inline-block;
+	content: "\2013";
+	padding: 0px 2px 0px 3px;
+	opacity: 0;
+}
+
+.double-range.collision label.from::after {
+	opacity: 1;
+}
+
+.double-range label.from {
+	transform: translate(calc(-50% + 7px), -50%);
+	-webkit-transform: translate(calc(-50% + 7px), -50%);
+}
+
+/* Min/Max static labels */
+.double-range .min.limit, .double-range .max.limit {
+	position: absolute;
+	bottom: calc(50% - var(--thumb-size));
+	font-size: 12px;
+	line-height: 12px;
+	height: 12px;
+	color: #444;
+	white-space: nowrap;
+}
+
+.double-range .min.limit {
+	left: 0;
+	transform: translate(-50%, 50%);
+	-webkit-transform: translate(-50%, 50%);
+}
+
+.double-range .max.limit {
+	right: 0;
+	transform: translate(50%, 50%);
+	-webkit-transform: translate(50%, 50%);
+}
+
+/* Track background */
+.double-range .track {
+	position: relative;
+	height: 6px;
+	background: #f1f1f1;
+	border-radius: 3px;
+	cursor: pointer;
+	box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Fill bar between thumbs */
+.double-range .range-bar {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	background: var(--range-bar-bg);
+	border-radius: 3px;
+	z-index: 1;
+}
+
+/* Thumb base style */
+.double-range .thumb, .double-range .start.point, .double-range .end.point
+	{
+	position: absolute;
+	display: inline-block;
+	top: 50%;
+	width: var(--thumb-size);
+	height: var(--thumb-size);
+	border-radius: 50%;
+	border: none;
+	outline: none;
+	transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+}
+
+.double-range .thumb {
+	left: 0;
+	z-index: 2;
+	will-change: transform;
+}
+
+.double-range .thumb.from {
+	background: var(--thumb-from-bg);
+}
+
+.double-range .thumb.to {
+	background: var(--thumb-to-bg);
+}
+
+.double-range .start.point, .double-range .end.point {
+	background: #e1e1e1;
+	z-index: 1;
+}
+
+.double-range .start.point {
+	left: 0;
+}
+
+.double-range .end.point {
+	left: 100%;
+}
+
+.double-range .thumb::before, .double-range .start.point::before,
+	.double-range .end.point::before {
+	content: "";
+	display: inline-block;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.6), 0px 0px 3px 1px
+		rgba(0, 0, 0, 0.6), 0px 0px 10px rgba(0, 0, 0, 0.1) inset;
+	z-index: 3;
+	transform: scale(0.5);
+	-webkit-transform: scale(0.5);
+}
+
+.double-range .start.point::before, .double-range .end.point::before {
+	opacity: 0.6;
+}
+
+.double-range-dragging {
+	cursor: w-resize !important;
+}
+
+.double-range .thumb {
+	cursor: w-resize;
+	transition: box-shadow 200ms linear, transform 50ms linear;
+	-webkit-transition: box-shadow 200ms linear, transform 50ms linear;
+}
+
+/* Thumb focus & hover */
+.double-range .thumb:focus, .double-range .thumb:hover, .double-range .thumb.dragging
+	{
+	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Active/dragging state */
+.double-range .thumb:active, .double-range .dragging {
+	transform: translate(-50%, -50%) scale(1.1);
+	-webkit-transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Keyboard/Focus accessibility */
+.double-range .thumb:focus {
+	outline: 2px solid rgba(0, 0, 0, 0.4);
+	outline-offset: 2px;
+}
