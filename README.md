@@ -16,6 +16,9 @@ Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/tou
 - Before-change hooks (`beforeFromChange`, `beforeToChange`)
 - Can be initialized from existing HTML structure
 
+## Demo
+[https://ej-kon.github.io/DoubleRange/](https://ej-kon.github.io/DoubleRange/)
+
 ## License
 
 [MIT License](https://opensource.org/licenses/MIT)
