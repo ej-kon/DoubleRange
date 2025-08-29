@@ -26,10 +26,28 @@ Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/tou
 ## Installation
 
 ### Manual download:
-Download the latest release and include the JS and CSS files:
+Download the latest release from the /dist folder and include the JS and CSS files:
+
 ```html
 <script src="double-range.min.js"></script>
 <link rel="stylesheet" href="double-range.min.css">
+```
+
+### Via npm:
+```bash
+npm install @ej-kon/double-range
+```
+
+### Via CDN (jsDelivr):
+```html
+<script src="https://cdn.jsdelivr.net/npm/@ej-kon/double-range@1.0.2/dist/double-range.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ej-kon/double-range@1.0.2/dist/double-range.min.css">
+```
+
+### Via CDN (unpkg):
+```html
+<script src="https://unpkg.com/@ej-kon/double-range@1.0.2/dist/double-range.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@ej-kon/double-range@1.0.2/dist/double-range.min.css">
 ```
 
 ## Usage
