@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - README.md to include npm install and CDNs
 
-## [1.0.4] - 2025-08-29
+## [1.0.4] - 2025-08-30
 ### Added
 - New TypeScript version (ES2022 compatible) available in /src/double-range.ts
 - tsconfig.json in root for tsc
@@ -41,4 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - double-range.css to make the base CSS more easy to use without additional CSS
 - README.md (TypeScript version e.t.c.) 
 - GitHub page with the new examples 
+
+## [1.0.5] - 2025-08-30
+### Added
+- .gitattributes for GitHub main language (JavaScript) recognition  
  
