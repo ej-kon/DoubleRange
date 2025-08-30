@@ -10,6 +10,10 @@ body {
     line-height: 0px;
 }
 
+.double-range
+{
+	width: 600px;
+}
 
 h1
 {
@@ -27,12 +31,16 @@ h2
 h3 {
     font-size: 15px;
     line-height: 19px;
-    background-color: #f3f5f5;
     margin: 20px 0px 0px;
     padding: 0px 0px 0px 5px;
     line-height: 30px;
     border-bottom: 1px solid;
     color: #002255;
+}
+
+body>div
+{
+	white-space: nowrap;
 }
 
 pre
@@ -44,6 +52,7 @@ pre
 	line-height: 15px;
 	tab-size: 2;
 	position: relative;
+	white-space: pre-wrap;
 }
 
 pre::before {
@@ -58,7 +67,7 @@ pre::before {
 
 pre.html
 {
-	background-color: #f1f7f1;	
+	color: #002200;	
 }
 
 pre.html::before
@@ -67,9 +76,20 @@ pre.html::before
 	color:#55aa55;
 }
 
+
+@media screen and (min-width: 1000px) {
+	pre.js,pre.css
+	{
+		display: inline-block;
+		width: 50%;
+		vertical-align: top;
+	}
+}
+
+
 pre.js
 {
-	background-color: #f1f1f7;
+	color: #000033;
 }
 
 pre.js::before
@@ -80,7 +100,7 @@ pre.js::before
 
 pre.css
 {
-	background-color: #f7f1f1;
+	color: #330000;
 }
 
 pre.css::before
@@ -146,5 +166,34 @@ pre.css::before
     border-radius: 5px;
     cursor: pointer;
     box-shadow: 0px 0px 1px 1px rgba(100, 100, 100, 0.2);
+}
+
+#slider-4 .double-range {
+    --thumb-from-bg: #005599;
+    --thumb-to-bg: #990055;
+    --range-bar-bg: linear-gradient(to right, #cee1f8, #f8cec1);
+}
+
+#slider-4 .double-range label
+{
+	font-size: 13px;
+	text-shadow:0px 0px 1px;
+	letter-spacing:1px;
+	padding: 0px;
+}
+
+#slider-4 .double-range label.from
+{
+	color:#005599;
+}
+
+#slider-4 .double-range label.from::after
+{
+	color:#000000;
+}
+
+#slider-4 .double-range label.to
+{
+	color:#990022;
 }
 

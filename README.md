@@ -2,6 +2,8 @@
 
 Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/touch support, ARIA compliance, customizable styling, and programmatic API (callback, update, before change and more).
 
+![DoubleRange screenshots](docs/readme-img-1.png)
+
 ## Features
 
 - Lightweight , safe, fast and dependency-free (~12 KB minified)
@@ -15,6 +17,7 @@ Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/tou
 - Prevents invalid states (e.g., from >= to)
 - Before-change hooks (`beforeFromChange`, `beforeToChange`)
 - Can be initialized from existing HTML structure
+- **TypeScript version (ES2022 compatible) available in /src**
 
 ## Demo
 [https://ej-kon.github.io/DoubleRange/](https://ej-kon.github.io/DoubleRange/)
@@ -81,7 +84,7 @@ const slider = DoubleRange.create({
     <div role="group" aria-label="Double Range">
       <aside class="start point"></aside>
       <aside class="min limit">0</aside>
-      <label for="doubleRange1-from" class="from">20</label>
+      <label for="doubleRange1-from" class="from"><span>20</span></label>
       <div class="track" role="none">
         <div class="thumb from"
           id="doubleRange1-from" role="slider" tabindex="0"
@@ -95,7 +98,7 @@ const slider = DoubleRange.create({
         </div>
         <div class="range-bar"></div>
       </div>
-      <label for="doubleRange1-to" class="to">80</label>
+      <label for="doubleRange1-to" class="to"><span>80</span></label>
       <aside class="max limit">100</aside>
       <aside class="end point"></aside>
   	</div>

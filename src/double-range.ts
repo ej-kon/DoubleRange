@@ -1,7 +1,7 @@
 /**
  * DoubleRange - Vanilla JavaScript Dual-Thumb Range Slider
  * (c) 2025-present – MIT licence
- * https://github.com/ej-kon/DoubleRange
+ * https://github.com/ej-kon/DoubleRange      
  *
  * A fully accessible, self-cleaning, programmatic range slider with two draggable thumbs.
  * Uses custom `div[role="slider"]` for full control over visuals and behavior.
@@ -32,98 +32,113 @@
  * slider.setFrom(30);
  * console.log(slider.getTo()); // 80
  */
+
+// Type definitions
+type ThumbType = 'from' | 'to';
+type DoubleRangeConfig = {
+	selector: string;
+	min: number;
+	max: number;
+	from: number;
+	to: number;
+	step: number;
+	callback: (from: number, to: number) => void;
+	delay?: number;
+	formatter?: (value: number) => string;
+	label?: string;
+	beforeFromChange?: (from: number, to: number) => boolean;
+	beforeToChange?: (from: number, to: number) => boolean;
+};
+
+type UpdateOptions = {
+	min?: number;
+	max?: number;
+	from?: number;
+	to?: number;
+};
+
+type RangeValues = {
+	from: number;
+	to: number;
+};
+
 class DoubleRange {
 	// Static state
 	static #counter = 0; // Unique ID counter for generated elements
-	static #map = new WeakMap(); // Map DOM container → instance (for lookup & cleanup)
+	static #map = new WeakMap<HTMLElement, DoubleRange>(); // Map DOM container → instance (for lookup & cleanup)
 
 	// Instance state flags
 	#destroyed = false; // Prevents double-destroy
-	#div = null; // double-range container element
+	#div: HTMLElement; // double-range container element
 	#hasLabelsCollision = false; // if the from / to labels would be in collision
 
 	// DOM references
-	#track = null; // Track background
-	#fromThumb = null; // Lower thumb
-	#toThumb = null; // Upper thumb
-	#fromLabel = null; // Label for lower thumb
-	#fromLabelContent = null; // The contents of the label for lower thumb
-	#toLabel = null; // Label for upper thumb
-	#toLabelContent = null; // The contents of the label for upper thumb	
-	#minLabel = null; // Static min value display
-	#maxLabel = null; // Static max value display
+	#track: HTMLElement; // Track background
+	#fromThumb: HTMLElement; // Lower thumb
+	#toThumb: HTMLElement; // Upper thumb
+	#fromLabel: HTMLLabelElement; // Label for lower thumb
+	#fromLabelContent: HTMLElement; // The contents of the label for lower thumb
+	#toLabel: HTMLLabelElement; // Label for upper thumb
+	#toLabelContent: HTMLElement; // The contents of the label for upper thumb  
+	#minLabel: HTMLElement; // Static min value display
+	#maxLabel: HTMLElement; // Static max value display
 
 	// Configuration
-	#formatter = null; // User function to format values for display
-	#callback = null; // User callback (from, to)
+	#formatter: ((value: number) => string) | null = null; // User function to format values for display
+	#callback: ((from: number, to: number) => void) | null = null; // User callback (from, to)
 	#delay = 0; // Debounce delay for callback
-	#callbackTimer = null; // Timeout ID for debounced callback
-	#beforeFromChange = null; // User function before from value changes
-	#beforeToChange = null; // User function before from value changes
+	#callbackTimer: number | null = null; // Timeout ID for debounced callback
+	#beforeFromChange: ((from: number, to: number) => boolean) | null = null; // User function before from value changes
+	#beforeToChange: ((from: number, to: number) => boolean) | null = null; // User function before from value changes
 
 	// Internal state
-	#min = 0; // Minimum allowed value
-	#max = 100; // Maximum allowed value
+	#minValue = 0; // Minimum allowed value
+	#maxValue = 100; // Maximum allowed value
 	#step = 1; // Step increment
 	#fromValue = 0; // Current lower selected value
 	#toValue = 100; // Current upper selected value
-	#isDragging = null; // Currently dragging: 'from', 'to', or null
+	#isDragging: ThumbType | null = null; // Currently dragging: 'from', 'to', or null
 	#duringDrag = false; // Flag to prevent callback scheduling during drag
-	#trackRect = null; // Cached bounding rect during drag (for performance)
-	#divRect = null; // Cached bounding rect of the double-range div for labels positioning
+	#trackRect: DOMRect | null = null; // Cached bounding rect during drag (for performance)
+	#divRect: DOMRect | null = null; // Cached bounding rect of the double-range div for labels positioning
 
 	// ResizeObserver for auto-cleanup when DOM is removed
-	#modifyObserver = null;
+	#modifyObserver: ResizeObserver | null = null;
 
 	// Bound event handlers (retain `this` context and allow removal)
-	#onFromMouseDown = (e) => this.#onDragStart(e, 'from');
-	#onToMouseDown = (e) => this.#onDragStart(e, 'to');
-	#onFromTouchStart = (e) => this.#onDragStart(e, 'from', true);
-	#onToTouchStart = (e) => this.#onDragStart(e, 'to', true);
-	#onFromKeyDown = (e) => this.#onKey(e, 'from');
-	#onToKeyDown = (e) => this.#onKey(e, 'to');
-	#onTrackClicked = (e) => this.#trackClicked(e);
+	#onFromMouseDown = (e: MouseEvent) => this.#onDragStart(e, 'from');
+	#onToMouseDown = (e: MouseEvent) => this.#onDragStart(e, 'to');
+	#onFromTouchStart = (e: TouchEvent) => this.#onDragStart(e, 'from', true);
+	#onToTouchStart = (e: TouchEvent) => this.#onDragStart(e, 'to', true);
+	#onFromKeyDown = (e: KeyboardEvent) => this.#onKey(e, 'from');
+	#onToKeyDown = (e: KeyboardEvent) => this.#onKey(e, 'to');
+	#onTrackClicked = (e: MouseEvent) => this.#trackClicked(e);
 
 	// Drag handlers (attached only during active drag)
-	#onMouseMove = (e) => this.#onDragMove(e);
+	#onMouseMove = (e: MouseEvent) => this.#onDragMove(e);
 	#onMouseUp = () => this.#onDragEnd();
-	#onTouchMove = (e) => this.#onDragMove(e);
+	#onTouchMove = (e: TouchEvent) => this.#onDragMove(e);
 	#onTouchEnd = () => this.#onDragEnd();
 
 	/**
 	 * Factory method to create a new DoubleRange instance and generate its DOM.
 	 *
-	 * @param {Object} o - Configuration object
-	 * @param {string} o.selector - CSS selector for container element
-	 * @param {number} o.min - Minimum value
-	 * @param {number} o.max - Maximum value
-	 * @param {number} o.from - Initial lower value
-	 * @param {number} o.to - Initial upper value
-	 * @param {number} o.step - Step increment
-	 * @param {function} o.callback - OPTIONAL: Function called when values change
-	 *   after o.delay, e.g. fn(from, to)
-	 * @param {number} [o.delay=0] - OPTIONAL: Debounce delay (ms) for callback only
-	 * @param {function} [o.formatter=(v)=>v] - OPTIONAL: Format values for display
-	 * @param {string} [o.label="Range selector"] - OPTIONAL: ARIA label
- 	 * @param {function} o.beforeFromChange - OPTIONAL: Function called 
- 	 *	 before from value changes. Must return boolean - if false, change is prevented
- 	 * @param {function} o.beforeToChange - OPTIONAL: Function called 
- 	 *	 before to value changes. Must return boolean - if false, change is prevented
+	 * @param {DoubleRangeConfig} o - Configuration object
 	 * @returns {DoubleRange} New instance
 	 * @throws {TypeError|RangeError} If config is invalid
 	 */
-	static create(o) {
+	static create(o: DoubleRangeConfig): DoubleRange {
 		if (!o || typeof o !== 'object') {
 			throw new TypeError('config must be an object');
 		}
 
-		['selector'].forEach(k => {
+		(['selector'] as const).forEach(k => {
 			if (typeof o[k] !== 'string') {
 				throw new TypeError(`${k} must be a string`);
 			}
 		});
 
-		['min', 'max', 'from', 'to', 'step'].forEach(k => {
+		(['min', 'max', 'from', 'to', 'step'] as const).forEach(k => {
 			if (typeof o[k] !== 'number') {
 				throw new TypeError(`${k} must be a number`);
 			}
@@ -148,7 +163,7 @@ class DoubleRange {
 		}
 
 		if (typeof o.formatter !== 'function') {
-			o.formatter = (v) => v;
+			o.formatter = (v: number) => v.toString();
 		}
 
 		if (typeof o.label !== 'string') {
@@ -161,50 +176,50 @@ class DoubleRange {
 		const el = DoubleRange.#getElement(o.selector);
 		el.textContent = '';
 		el.insertAdjacentHTML('beforeend', `
-			<div class="double-range">
-				<div role="group" aria-label="${o.label}">
-					<aside class="start point"></aside>
-					<aside class="min limit">${o.formatter(o.min)}</aside>
-					<label for="${id}-from" class="from"><span>${o.formatter(o.from)}</span></label>
-					<div class="track" role="none">
-						<div class="thumb from" 
-							id="${id}-from" 
-							role="slider" 
-							tabindex="0" 
-							aria-orientation="horizontal" 
-							aria-valuemin="${o.min}" 
-							aria-valuemax="${o.max}" 
-							aria-valuenow="${o.from}" 
-							aria-valuetext="${o.formatter(o.from)}">
-						</div>
-						<div class="thumb to" 
-							id="${id}-to" 
-							role="slider" 
-							tabindex="0" 
-							aria-orientation="horizontal" 
-							aria-valuemin="${o.min}" 
-							aria-valuemax="${o.max}" 
-							aria-valuenow="${o.to}" 
-							aria-valuetext="${o.formatter(o.to)}">
-						</div>
-						<div class="range-bar"></div>
-					</div>
-					<label for="${id}-to" class="to"><span>${o.formatter(o.to)}</span></label>
-					<aside class="max limit">${o.formatter(o.max)}</aside>
-					<aside class="end point"></aside>
-				</div>
-			</div>
-		`);
+      <div class="double-range">
+        <div role="group" aria-label="${o.label}">
+          <aside class="start point"></aside>
+          <aside class="min limit">${o.formatter(o.min)}</aside>
+          <label for="${id}-from" class="from"><span>${o.formatter(o.from)}</span></label>
+          <div class="track" role="none">
+            <div class="thumb from" 
+              id="${id}-from" 
+              role="slider" 
+              tabindex="0" 
+              aria-orientation="horizontal" 
+              aria-valuemin="${o.min}" 
+              aria-valuemax="${o.max}" 
+              aria-valuenow="${o.from}" 
+              aria-valuetext="${o.formatter(o.from)}">
+            </div>
+            <div class="thumb to" 
+              id="${id}-to" 
+              role="slider" 
+              tabindex="0" 
+              aria-orientation="horizontal" 
+              aria-valuemin="${o.min}" 
+              aria-valuemax="${o.max}" 
+              aria-valuenow="${o.to}" 
+              aria-valuetext="${o.formatter(o.to)}">
+            </div>
+            <div class="range-bar"></div>
+          </div>
+          <label for="${id}-to" class="to"><span>${o.formatter(o.to)}</span></label>
+          <aside class="max limit">${o.formatter(o.max)}</aside>
+          <aside class="end point"></aside>
+        </div>
+      </div>
+    `);
 		return new DoubleRange(o);
 	}
 
 	/**
 	 * Constructor — Attach behavior to an existing DoubleRange DOM structure.
 	 * 
-	 * @param {Object} o - Configuration object (same as create)
+	 * @param {DoubleRangeConfig} o - Configuration object (same as create)
 	 * @throws {TypeError|Error} If config or DOM is invalid
 	 */
-	constructor(o) {
+	constructor(o: DoubleRangeConfig) {
 		if (typeof o.selector !== 'string') {
 			throw new TypeError('selector must be a string');
 		}
@@ -222,7 +237,7 @@ class DoubleRange {
 		}
 
 		this.#delay = typeof o.delay === 'number' ? o.delay : 0;
-		this.#formatter = typeof o.formatter === 'function' ? o.formatter : (v) => v;
+		this.#formatter = typeof o.formatter === 'function' ? o.formatter : (v: number) => v.toString();
 		this.#callback = o.callback;
 
 		const container = DoubleRange.#getElement(o.selector);
@@ -233,17 +248,17 @@ class DoubleRange {
 		}
 
 		// Cache DOM elements
-		this.#fromThumb = container.querySelector('.thumb.thumb.from');
-		this.#toThumb = container.querySelector('.thumb.thumb.to');
-		this.#fromLabel = container.querySelector('label.from');
-		this.#fromLabelContent = this.#fromLabel.querySelector('span');
-		this.#toLabel = container.querySelector('label.to');
-		this.#toLabelContent = this.#toLabel.querySelector('span');
-		this.#minLabel = container.querySelector('.min.limit');
-		this.#maxLabel = container.querySelector('.max.limit');
-		this.#track = container.querySelector('.track');
-		this.#div = container.querySelector('.double-range');
-		
+		this.#fromThumb = container.querySelector('.thumb.from') as HTMLElement;
+		this.#toThumb = container.querySelector('.thumb.to') as HTMLElement;
+		this.#fromLabel = container.querySelector('label.from') as HTMLLabelElement;
+		this.#fromLabelContent = this.#fromLabel.querySelector('span') as HTMLElement;
+		this.#toLabel = container.querySelector('label.to') as HTMLLabelElement;
+		this.#toLabelContent = this.#toLabel.querySelector('span') as HTMLElement;
+		this.#minLabel = container.querySelector('.min.limit') as HTMLElement;
+		this.#maxLabel = container.querySelector('.max.limit') as HTMLElement;
+		this.#track = container.querySelector('.track') as HTMLElement;
+		this.#div = container.querySelector('.double-range') as HTMLElement;
+
 		// Validate required elements
 		if (!this.#div || !this.#fromThumb || !this.#toThumb || !this.#track
 			|| !this.#fromLabel || !this.#toLabel
@@ -252,12 +267,12 @@ class DoubleRange {
 		}
 
 		// Initialize state from DOM attributes or config
-		this.#min = parseFloat(this.#fromThumb.getAttribute('aria-valuemin'));
-		this.#max = parseFloat(this.#fromThumb.getAttribute('aria-valuemax'));
+		this.#minValue = parseFloat(this.#fromThumb.getAttribute('aria-valuemin') || '0');
+		this.#maxValue = parseFloat(this.#fromThumb.getAttribute('aria-valuemax') || '100');
 		this.#step = o.step ?? 1;
 
-		this.#fromValue = parseFloat(this.#fromThumb.getAttribute('aria-valuenow')) || o.from || this.#min;
-		this.#toValue = parseFloat(this.#toThumb.getAttribute('aria-valuenow')) || o.to || this.#max;
+		this.#fromValue = parseFloat(this.#fromThumb.getAttribute('aria-valuenow') || '0') || o.from || this.#minValue;
+		this.#toValue = parseFloat(this.#toThumb.getAttribute('aria-valuenow') || '100') || o.to || this.#maxValue;
 
 		if (this.#fromValue >= this.#toValue) {
 			throw new Error('Initial values: from must be less than to');
@@ -279,6 +294,7 @@ class DoubleRange {
 			}
 			this.#setOuterRects();
 		});
+
 		this.#modifyObserver.observe(this.#div);
 		this.#destroyed = false;
 
@@ -295,11 +311,11 @@ class DoubleRange {
 		if (afterStyleContent) {
 			const transformValue = `translate(calc(-50% + ${afterStyle.width}), -50%)`;
 			this.#fromLabel.style.transform = transformValue;
-			this.#fromLabel.style.webkitTransform = transformValue;
+			(this.#fromLabel.style as any).webkitTransform = transformValue;
 		}
 	}
 
-	#setOuterRects = () => {
+	#setOuterRects = (): void => {
 		this.#trackRect = this.#track.getBoundingClientRect();
 		this.#divRect = this.#div.getBoundingClientRect();
 		this.#updateFromToLabels();
@@ -311,13 +327,13 @@ class DoubleRange {
 	 * @param {string} selector
 	 * @returns {DoubleRange|null}
 	 */
-	static getBySelector(selector) {
+	static getBySelector(selector: string): DoubleRange | null {
 		const container = DoubleRange.#getElement(selector);
-		const div = container.querySelector('.double-range');
+		const div = container.querySelector('.double-range') as HTMLElement | null;
 		if (!div) {
 			return null;
 		}
-		return DoubleRange.#map.has(div) ? DoubleRange.#map.get(div) : null;
+		return DoubleRange.#map.has(div) ? DoubleRange.#map.get(div) || null : null;
 	}
 
 	/**
@@ -325,35 +341,49 @@ class DoubleRange {
 	 * @param {Element} container
 	 * @returns {DoubleRange|null}
 	 */
-	static getByContainer(container) {
-		const div = container.querySelector('.double-range');
+	static getByContainer(container: Element): DoubleRange | null {
+		const div = container.querySelector('.double-range') as HTMLElement | null;
 		if (!div) {
 			return null;
 		}
-		return DoubleRange.#map.has(div) ? DoubleRange.#map.get(div) : null;
+		return DoubleRange.#map.has(div) ? DoubleRange.#map.get(div) || null : null;
 	}
 
 	/**
 	 * Helper to safely select a single element
 	 * @param {string} selector
-	 * @returns {Element}
+	 * @returns {HTMLElement}
 	 * @throws {Error} If not found or multiple match
-	 * @private
 	 */
-	static #getElement(selector) {
+	static #getElement(selector: string): HTMLElement {
 		const els = document.querySelectorAll(selector);
-		if (els.length === 0) throw new Error(`Element ${selector} not found`);
-		if (els.length > 1) throw new Error(`Multiple elements match ${selector}`);
-		return els[0];
+		if (els.length === 0) {
+			throw new Error(`Element ${selector} not found`);
+		}
+		if (els.length > 1) {
+			throw new Error(`Multiple elements match ${selector}`);
+		}
+		const element = els[0];
+		if (!(element instanceof HTMLElement)) {
+			throw new Error(`Element ${selector} is not an HTMLElement`);
+		}
+		return element;
 	}
 
 	// ——————————————————————
 	// Track clicked
 	// ——————————————————————
-	#trackClicked(e) {
+	#trackClicked(e: MouseEvent): void {
+		// Add a check to satisfy the compiler and handle potential edge cases
+		if (!this.#trackRect) {
+			console.warn('trackRect is not initialized in trackClicked');
+			return;
+		}
+		
 		const percent = (e.clientX - this.#trackRect.left) / this.#trackRect.width;
-		const value = this.#min + percent * (this.#max - this.#min);
-		const snapped = Math.round((value - this.#min) / this.#step) * this.#step + this.#min;
+		const value = this.#minValue + percent * (this.#maxValue - this.#minValue);
+		const snapped = Math.round((value - this.#minValue) / this.#step) * this.#step
+			+ this.#minValue;
 
 		// Decide which thumb to move
 		if (Math.abs(snapped - this.#fromValue) < Math.abs(snapped - this.#toValue)) {
@@ -370,16 +400,14 @@ class DoubleRange {
 
 	/**
 	 * Initialize permanent event listeners on thumbs
-	 * @private
 	 */
-	#initEvents() {
+	#initEvents(): void {
 		this.#fromThumb.addEventListener('mousedown', this.#onFromMouseDown);
-		this.#toThumb.addEventListener('mousedown', this.#onToMouseDown);
-		this.#fromThumb.addEventListener('touchstart', this.#onFromTouchStart
-			, { passive: false });
-		this.#toThumb.addEventListener('touchstart', this.#onToTouchStart
-			, { passive: false });
+		this.#fromThumb.addEventListener('touchstart', this.#onFromTouchStart, { passive: false });
 		this.#fromThumb.addEventListener('keydown', this.#onFromKeyDown);
+
+		this.#toThumb.addEventListener('mousedown', this.#onToMouseDown);
+		this.#toThumb.addEventListener('touchstart', this.#onToTouchStart, { passive: false });
 		this.#toThumb.addEventListener('keydown', this.#onToKeyDown);
 
 		this.#track.addEventListener("click", this.#onTrackClicked);
@@ -397,23 +425,22 @@ class DoubleRange {
 	 * - Set drag flags to prevent callback scheduling
 	 * - Update z-index for visual feedback
 	 * 
-	 * @private
 	 * @param {MouseEvent|TouchEvent} e
 	 * @param {'from'|'to'} type
 	 * @param {boolean} isTouch
 	 */
-	#onDragStart(e, type, isTouch = false) {
+	#onDragStart(e: MouseEvent | TouchEvent, type: ThumbType, isTouch = false): void {
 		e.preventDefault();
 
 		// Set appropriate z-index for the dragging thumb
 		if (type === "from") {
-			this.#fromThumb.style.zIndex = 3;
-			this.#toThumb.style.zIndex = 2;
+			this.#fromThumb.style.zIndex = "3";
+			this.#toThumb.style.zIndex = "2";
 			this.#fromThumb.classList.add('dragging');
 		}
 		else {
-			this.#fromThumb.style.zIndex = 2;
-			this.#toThumb.style.zIndex = 3;
+			this.#fromThumb.style.zIndex = "2";
+			this.#toThumb.style.zIndex = "3";
 			this.#toThumb.classList.add('dragging');
 		}
 
@@ -421,7 +448,9 @@ class DoubleRange {
 		this.#duringDrag = true; // Flag to prevent callback scheduling during drag
 
 		// Clear any pending callback (user is still adjusting)
-		clearTimeout(this.#callbackTimer);
+		if (this.#callbackTimer) {
+			clearTimeout(this.#callbackTimer);
+		}
 
 		// Attach global listeners only during drag
 		document.addEventListener('mousemove', this.#onMouseMove);
@@ -439,24 +468,22 @@ class DoubleRange {
 	 * - Only update UI (values, positions, labels)
 	 * - Do NOT schedule callbacks (user is still adjusting)
 	 * 
-	 * @private
 	 * @param {MouseEvent|TouchEvent} e
 	 */
-	#onDragMove(e) {
-		if (!this.#isDragging) {
+	#onDragMove(e: MouseEvent | TouchEvent): void {
+		if (!this.#isDragging || !this.#trackRect) {
 			return;
 		}
 
-		const clientX = e.clientX ?? e.touches?.[0]?.clientX;
-		if (!clientX || !this.#trackRect) {
+		const clientX = 'clientX' in e ? e.clientX : (e.touches?.[0]?.clientX || 0);
+		if (!clientX) {
 			return;
 		}
 
-		const percent = Math.max(0
-			, Math.min(1, (clientX - this.#trackRect.left) / this.#trackRect.width));
-		const value = this.#min + percent * (this.#max - this.#min);
-		const snapped = Math.round((value - this.#min) / this.#step)
-			* this.#step + this.#min;
+		const percent = Math.max(0, Math.min(1, (clientX - this.#trackRect.left) / this.#trackRect.width));
+		const value = this.#minValue + percent * (this.#maxValue - this.#minValue);
+		const snapped = Math.round((value - this.#minValue) / this.#step) * this.#step
+			+ this.#minValue;
 
 		this.#setValue(this.#isDragging, snapped);
 	}
@@ -467,13 +494,11 @@ class DoubleRange {
 	 * After drag completes:
 	 * - Reset drag state
 	 * - Schedule final callback with debounce
-	 * 
-	 * @private
 	 */
-	#onDragEnd() {
+	#onDragEnd(): void {
 		if (!this.#isDragging) {
-			return
-		};
+			return;
+		}
 
 		// Remove global listeners
 		document.removeEventListener('mousemove', this.#onMouseMove);
@@ -504,11 +529,10 @@ class DoubleRange {
 	 * - Immediate UI updates
 	 * - Debounced callback (using #delay)
 	 * 
-	 * @private
 	 * @param {KeyboardEvent} e
 	 * @param {'from'|'to'} type
 	 */
-	#onKey(e, type) {
+	#onKey(e: KeyboardEvent, type: ThumbType): void {
 		const step = this.#step;
 		let changed = false;
 
@@ -516,7 +540,7 @@ class DoubleRange {
 			case 'ArrowLeft':
 			case 'ArrowDown':
 				e.preventDefault();
-				if (this.#getValue(type) - step >= this.#min) {
+				if (this.#getValue(type) - step >= this.#minValue) {
 					this.#setValue(type, this.#getValue(type) - step);
 					changed = true;
 				}
@@ -524,7 +548,7 @@ class DoubleRange {
 			case 'ArrowRight':
 			case 'ArrowUp':
 				e.preventDefault();
-				if (this.#getValue(type) + step <= this.#max) {
+				if (this.#getValue(type) + step <= this.#maxValue) {
 					this.#setValue(type, this.#getValue(type) + step);
 					changed = true;
 				}
@@ -543,11 +567,10 @@ class DoubleRange {
 
 	/**
 	 * Get current value by type
-	 * @private
 	 * @param {'from'|'to'} type
 	 * @returns {number}
 	 */
-	#getValue(type) {
+	#getValue(type: ThumbType): number {
 		return type === 'from' ? this.#fromValue : this.#toValue;
 	}
 
@@ -558,11 +581,10 @@ class DoubleRange {
 	 * - During drag: Update UI but don't schedule callbacks
 	 * - After drag/keyboard: Update UI and schedule callback
 	 * 
-	 * @private
 	 * @param {'from'|'to'} type
 	 * @param {number} value
 	 */
-	#setValue(type, value) {
+	#setValue(type: ThumbType, value: number): void {
 		if (type == "from") {
 			this.setFrom(value);
 		}
@@ -575,8 +597,10 @@ class DoubleRange {
 	// Visual Updates
 	// ——————————————————————
 
-	#updateMinMaxLabels() {
-		this.#minLabel.textContent = this.#formatter(this.#min);
+	#updateMinMaxLabels(): void {
+		if (!this.#formatter || !this.#divRect) return;
+
+		this.#minLabel.textContent = this.#formatter(this.#minValue);
 		this.#minLabel.style.left = '0px';
 		const minRect = this.#minLabel.getBoundingClientRect();
 		let realLeft = minRect.left - this.#divRect.left;
@@ -584,7 +608,7 @@ class DoubleRange {
 			this.#minLabel.style.left = `${-1 * realLeft}px`;
 		}
 
-		this.#maxLabel.textContent = this.#formatter(this.#max);
+		this.#maxLabel.textContent = this.#formatter(this.#maxValue);
 		this.#maxLabel.style.right = '0px';
 		const maxRect = this.#maxLabel.getBoundingClientRect();
 
@@ -593,16 +617,15 @@ class DoubleRange {
 		if (overflow > 0) {
 			this.#maxLabel.style.right = `${overflow}px`;
 		}
-
 	}
 
 	/**
 	 * Update fromLabel and toLabel texts and their positions
 	 * Ensures fromLabel and toLabel do not overlap
 	 * Uses CSS for transforms; JS only sets `left` and checks for collision
-	 * @private
 	 */
-	#updateFromToLabels() {
+	#updateFromToLabels(): void {
+		if (!this.#formatter) return;
 
 		if (this.#hasLabelsCollision) {
 			this.#div.classList.remove("collision");
@@ -614,9 +637,9 @@ class DoubleRange {
 		this.#toLabelContent.textContent = this.#formatter(this.#toValue);
 
 		// Get percentage positions of thumbs
-		const range = this.#max - this.#min;
-		const fromPos = ((this.#fromValue - this.#min) / range) * 100;
-		const toPos = ((this.#toValue - this.#min) / range) * 100;
+		const range = this.#maxValue - this.#minValue;
+		const fromPos = ((this.#fromValue - this.#minValue) / range) * 100;
+		const toPos = ((this.#toValue - this.#minValue) / range) * 100;
 
 		// Always set basic left position (used by CSS for layout)
 		let fromX = `${fromPos}%`;
@@ -648,6 +671,7 @@ class DoubleRange {
 		}
 
 		// case: toLabel overflows right
+		if (!this.#divRect) return;
 		let realLeft = toRect.left - this.#divRect.left;
 		const rightOverflow = realLeft + toRect.width - this.#divRect.width;
 		if (rightOverflow > 0) {
@@ -682,17 +706,16 @@ class DoubleRange {
 	 * Position thumbs and fill bar based on current values
 	 * Now uses only percentage values. Centering is done via CSS.
 	 * CSS should use: `transform: translateX(-50%)` to center thumbs.
-	 * @private
 	 */
-	#positionThumbs() {
-		const range = this.#max - this.#min;
-		const fromPos = ((this.#fromValue - this.#min) / range) * 100;
-		const toPos = ((this.#toValue - this.#min) / range) * 100;
+	#positionThumbs(): void {
+		const range = this.#maxValue - this.#minValue;
+		const fromPos = ((this.#fromValue - this.#minValue) / range) * 100;
+		const toPos = ((this.#toValue - this.#minValue) / range) * 100;
 
 		this.#fromThumb.style.left = `${fromPos}%`;
 		this.#toThumb.style.left = `${toPos}%`;
 
-		const bar = this.#track.querySelector('.range-bar');
+		const bar = this.#track.querySelector('.range-bar') as HTMLElement;
 		bar.style.left = `${fromPos}%`;
 		bar.style.width = `${toPos - fromPos}%`;
 	}
@@ -704,13 +727,17 @@ class DoubleRange {
 	 * - During drag: No callbacks scheduled
 	 * - At drag end: Callback scheduled after #delay ms
 	 * - Keyboard/programmatic changes: Callback debounced by #delay ms
-	 * 
-	 * @private
 	 */
-	#scheduleCallback() {
-		clearTimeout(this.#callbackTimer);
-		this.#callbackTimer = setTimeout(() => {
-			this.#callback(this.#fromValue, this.#toValue);
+	#scheduleCallback(): void {
+		if (this.#callbackTimer) {
+			clearTimeout(this.#callbackTimer);
+		}
+
+		this.#callbackTimer = window.setTimeout(() => {
+			if (this.#callback) {
+				this.#callback(this.#fromValue, this.#toValue);
+			}
+
 			this.#div.dispatchEvent(
 				new CustomEvent('range-change', {
 					detail: { from: this.#fromValue, to: this.#toValue },
@@ -738,25 +765,21 @@ class DoubleRange {
 	 * @param {number} min - The new minimum value
 	 * @param {boolean} [fireCallback=true] - Whether to trigger the callback after update
 	 * 
-	 * @throws {TypeError} If `min` is not a number
 	 * @throws {RangeError} If constraints are violated
 	 * 
 	 * @returns {DoubleRange} `this` for method chaining
 	 */
-	setMin(min, fireCallback = true) {
-		if (typeof min !== 'number') {
-			throw new TypeError('DoubleRange.setMin: min must be a number');
-		}
-		if (min >= this.#max) {
-			throw new RangeError(`DoubleRange.setMin: min (${min}) must be less than max (${this.#max})`);
+	setMin(min: number, fireCallback = true): this {
+		if (min >= this.#maxValue) {
+			throw new RangeError(`DoubleRange.setMin: min (${min}) must be less than max (${this.#maxValue})`);
 		}
 		if (min > this.#fromValue) {
 			throw new RangeError(`DoubleRange.setMin: min (${min}) must be less than or equal to current from value (${this.#fromValue})`);
 		}
 
-		this.#min = min;
-		this.#fromThumb.setAttribute('aria-valuemin', min);
-		this.#toThumb.setAttribute('aria-valuemin', min);
+		this.#minValue = min;
+		this.#fromThumb.setAttribute('aria-valuemin', min.toString());
+		this.#toThumb.setAttribute('aria-valuemin', min.toString());
 
 		this.#updateFromToLabels();
 		this.#updateMinMaxLabels();
@@ -783,25 +806,21 @@ class DoubleRange {
 	 * @param {number} max - The new maximum value
 	 * @param {boolean} [fireCallback=true] - Whether to trigger the callback after update
 	 * 
-	 * @throws {TypeError} If `max` is not a number
 	 * @throws {RangeError} If constraints are violated
 	 * 
 	 * @returns {DoubleRange} `this` for method chaining
 	 */
-	setMax(max, fireCallback = true) {
-		if (typeof max !== 'number') {
-			throw new TypeError('DoubleRange.setMax: max must be a number');
-		}
-		if (max <= this.#min) {
-			throw new RangeError(`DoubleRange.setMax: max (${max}) must be greater than min (${this.#min})`);
+	setMax(max: number, fireCallback = true): this {
+		if (max <= this.#minValue) {
+			throw new RangeError(`DoubleRange.setMax: max (${max}) must be greater than min (${this.#minValue})`);
 		}
 		if (max < this.#toValue) {
 			throw new RangeError(`DoubleRange.setMax: max (${max}) must be greater than or equal to current to value (${this.#toValue})`);
 		}
 
-		this.#max = max;
-		this.#fromThumb.setAttribute('aria-valuemax', max);
-		this.#toThumb.setAttribute('aria-valuemax', max);
+		this.#maxValue = max;
+		this.#fromThumb.setAttribute('aria-valuemax', max.toString());
+		this.#toThumb.setAttribute('aria-valuemax', max.toString());
 
 		this.#updateFromToLabels();
 		this.#updateMinMaxLabels();
@@ -828,16 +847,11 @@ class DoubleRange {
 	 * @param {number} from - The new lower value
 	 * @param {boolean} [fireCallback=true] - Whether to trigger the callback after update
 	 * 
-	 * @throws {TypeError} If `from` is not a number
-	 * 
 	 * @returns {DoubleRange|boolean} `this` for method chaining if successful,
-	 *		`false` if constraints are violated
+	 *    `false` if constraints are violated
 	 */
-	setFrom(from, fireCallback = true) {
-		if (typeof from !== 'number') {
-			throw new TypeError('DoubleRange.setFrom: from must be a number');
-		}
-		if (from < this.#min || from > this.#max) {
+	setFrom(from: number, fireCallback = true): this | false {
+		if (from < this.#minValue || from > this.#maxValue) {
 			return false;
 		}
 		if (from >= this.#toValue) {
@@ -849,8 +863,10 @@ class DoubleRange {
 		}
 
 		this.#fromValue = from;
-		this.#fromThumb.setAttribute('aria-valuenow', from);
-		this.#fromThumb.setAttribute('aria-valuetext', this.#formatter(from));
+		if (this.#formatter) {
+			this.#fromThumb.setAttribute('aria-valuenow', from.toString());
+			this.#fromThumb.setAttribute('aria-valuetext', this.#formatter(from));
+		}
 
 		this.#updateFromToLabels();
 		this.#positionThumbs();
@@ -876,16 +892,11 @@ class DoubleRange {
 	 * @param {number} to - The new upper value
 	 * @param {boolean} [fireCallback=true] - Whether to trigger the callback after update
 	 * 
-	 * @throws {TypeError} If `to` is not a number
-	 * 
 	 * @returns {DoubleRange|boolean} `this` for method chaining if successful,
-	 *		`false` if constraints are violated
+	 *    `false` if constraints are violated
 	 */
-	setTo(to, fireCallback = true) {
-		if (typeof to !== 'number') {
-			throw new TypeError('DoubleRange.setTo: to must be a number');
-		}
-		if (to < this.#min || to > this.#max) {
+	setTo(to: number, fireCallback = true): this | false {
+		if (to < this.#minValue || to > this.#maxValue) {
 			return false;
 		}
 		if (to <= this.#fromValue) {
@@ -897,10 +908,11 @@ class DoubleRange {
 			return false;
 		}
 
-
 		this.#toValue = to;
-		this.#toThumb.setAttribute('aria-valuenow', to);
-		this.#toThumb.setAttribute('aria-valuetext', this.#formatter(to));
+		if (this.#formatter) {
+			this.#toThumb.setAttribute('aria-valuenow', to.toString());
+			this.#toThumb.setAttribute('aria-valuetext', this.#formatter(to));
+		}
 
 		this.#updateFromToLabels();
 		this.#positionThumbs();
@@ -924,11 +936,7 @@ class DoubleRange {
 	 * slider.update({ from: 25 }); // Updates and triggers callback
 	 * slider.update({ min: 0, max: 100 }, false); // Silent bulk update
 	 * 
-	 * @param {Object} o - Update options (all properties optional)
-	 * @param {number} [o.min] - New minimum value
-	 * @param {number} [o.max] - New maximum value
-	 * @param {number} [o.from] - New lower thumb value
-	 * @param {number} [o.to] - New upper thumb value
+	 * @param {UpdateOptions} o - Update options (all properties optional)
 	 * @param {boolean} [fireCallback=true] - Whether to trigger the callback after update
 	 * 
 	 * @throws {TypeError} If `o` is not a plain object or any value is not a number
@@ -936,7 +944,7 @@ class DoubleRange {
 	 * 
 	 * @returns {DoubleRange} `this` for method chaining
 	 */
-	update(o, fireCallback = true) {
+	update(o: UpdateOptions, fireCallback = true): this {
 		// Validate input: must be a plain object
 		const isPlainObject = o &&
 			typeof o === 'object' &&
@@ -949,20 +957,17 @@ class DoubleRange {
 
 		// Preserve current values for any unspecified fields
 		const current = {
-			min: this.#min,
-			max: this.#max,
+			min: this.#minValue,
+			max: this.#maxValue,
 			from: this.#fromValue,
 			to: this.#toValue
 		};
 
 		// Normalize input: fill missing with current values
-		const next = {};
-		for (const key of ['min', 'max', 'from', 'to']) {
-			next[key] = o[key] !== undefined ? o[key] : current[key];
-
-			if (typeof next[key] !== 'number') {
-				throw new TypeError(`DoubleRange.update: '${key}' must be a number`);
-			}
+		const next = {} as { min: number; max: number; from: number; to: number; };
+		for (const key of ['min', 'max', 'from', 'to'] as const) {
+			// Assert that the result is a number
+			next[key] = (o[key] !== undefined ? o[key] : current[key]) as number;
 		}
 
 		// Validate logical constraints
@@ -983,21 +988,25 @@ class DoubleRange {
 		}
 
 		// Apply all new values
-		this.#min = next.min;
-		this.#max = next.max;
+		this.#minValue = next.min;
+		this.#maxValue = next.max;
 		this.#fromValue = next.from;
 		this.#toValue = next.to;
 
 		// Sync ARIA attributes
-		this.#fromThumb.setAttribute('aria-valuemin', next.min);
-		this.#fromThumb.setAttribute('aria-valuemax', next.max);
-		this.#fromThumb.setAttribute('aria-valuenow', next.from);
-		this.#fromThumb.setAttribute('aria-valuetext', this.#formatter(next.from));
+		if (this.#formatter) {
+			this.#fromThumb.setAttribute('aria-valuemin', next.min.toString());
+			this.#fromThumb.setAttribute('aria-valuemax', next.max.toString());
+			this.#fromThumb.setAttribute('aria-valuenow', next.from.toString());
+			this.#fromThumb.setAttribute('aria-valuetext', this.#formatter(next.from));
+		}
 
-		this.#toThumb.setAttribute('aria-valuemin', next.min);
-		this.#toThumb.setAttribute('aria-valuemax', next.max);
-		this.#toThumb.setAttribute('aria-valuenow', next.to);
-		this.#toThumb.setAttribute('aria-valuetext', this.#formatter(next.to));
+		this.#toThumb.setAttribute('aria-valuemin', next.min.toString());
+		this.#toThumb.setAttribute('aria-valuemax', next.max.toString());
+		if (this.#formatter) {
+			this.#toThumb.setAttribute('aria-valuenow', next.to.toString());
+			this.#toThumb.setAttribute('aria-valuetext', this.#formatter(next.to));
+		}
 
 		// Update visuals
 		this.#updateFromToLabels();
@@ -1016,7 +1025,7 @@ class DoubleRange {
 	 * Get the current lower value
 	 * @returns {number}
 	 */
-	getFrom() {
+	getFrom(): number {
 		return this.#fromValue;
 	}
 
@@ -1024,7 +1033,7 @@ class DoubleRange {
 	 * Get the current upper value
 	 * @returns {number}
 	 */
-	getTo() {
+	getTo(): number {
 		return this.#toValue;
 	}
 
@@ -1032,23 +1041,23 @@ class DoubleRange {
 	 * Get the current minimum bound
 	 * @returns {number}
 	 */
-	getMin() {
-		return this.#min;
+	getMin(): number {
+		return this.#minValue;
 	}
 
 	/**
 	 * Get the current maximum bound
 	 * @returns {number}
 	 */
-	getMax() {
-		return this.#max;
+	getMax(): number {
+		return this.#maxValue;
 	}
 
 	/**
 	 * Get current range as object
-	 * @returns {{ from: number, to: number }}
+	 * @returns {RangeValues}
 	 */
-	getRange() {
+	getRange(): RangeValues {
 		return { from: this.#fromValue, to: this.#toValue };
 	}
 
@@ -1060,18 +1069,20 @@ class DoubleRange {
 	 * Clean up all event listeners and observers.
 	 * Safe to call multiple times.
 	 */
-	destroy() {
+	destroy(): void {
 		if (this.#destroyed) {
 			return;
 		}
 
 		// Remove local event listeners
 		this.#fromThumb.removeEventListener('mousedown', this.#onFromMouseDown);
-		this.#toThumb.removeEventListener('mousedown', this.#onToMouseDown);
 		this.#fromThumb.removeEventListener('touchstart', this.#onFromTouchStart);
-		this.#toThumb.removeEventListener('touchstart', this.#onToTouchStart);
 		this.#fromThumb.removeEventListener('keydown', this.#onFromKeyDown);
+
+		this.#toThumb.removeEventListener('mousedown', this.#onToMouseDown);
+		this.#toThumb.removeEventListener('touchstart', this.#onToTouchStart);
 		this.#toThumb.removeEventListener('keydown', this.#onToKeyDown);
+
 		this.#track.removeEventListener("click", this.#onTrackClicked);
 
 		// Clean up drag state
@@ -1092,7 +1103,7 @@ class DoubleRange {
 		}
 
 		// Remove from global map
-		if (this.#div && DoubleRange.#map.has(this.#div)) {
+		if (DoubleRange.#map.has(this.#div)) {
 			DoubleRange.#map.delete(this.#div);
 		}
 
