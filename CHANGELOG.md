@@ -53,3 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - double-range.js optimize validation for setTo and setFrom , and stop callback during drag
 - double-range.ts same as above
+
+
+## [1.0.7] - 2025-09-01
+### Changed
+- README.md changed links in CDNs for current version
+

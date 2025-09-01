@@ -1,6 +1,6 @@
 {
   "name": "@ej-kon/double-range",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Accessible, dependency-free vanilla JS dual-thumb range slider with keyboard/touch support, ARIA compliance, customizable styling, and programmatic API",
   "main": "dist/double-range.min.js",
   "files": [
