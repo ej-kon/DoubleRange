@@ -239,7 +239,145 @@
 		</pre>		
 		<div id="slider-4"></div>
 </div>
-
+<div>
+	<h3>Example 5. setFrom() , setTo() , setMin() , setMax()</h3>
+		<pre class="html">
+			&lt;div class="fields">
+				&lt;div>
+					&lt;input type="text" id="from-5" placeholder="" size="6" maxlength="6">
+					&lt;button id="set-from-5">setFrom()&lt;/button>
+				&lt;/div>
+				&lt;div>
+					&lt;input type="text" id="to-5" placeholder="" size="6" maxlength="6">
+					&lt;button id="set-to-5">setTo()&lt;/button>
+				&lt;/div>		
+				&lt;div>
+					&lt;input type="text" id="min-5" placeholder="" size="6" maxlength="6">
+					&lt;button id="set-min-5">setMin()&lt;/button>
+				&lt;/div>	
+				&lt;div>
+					&lt;input type="text" id="max-5" placeholder="" size="6" maxlength="6">
+					&lt;button id="set-max-5">setMax()&lt;/button>
+				&lt;/div>		
+				&lt;div>
+					&lt;label for='callback-5'>result:&lt;/label>
+					&lt;input type="text" id="result-5" placeholder="" size="6" maxlength="6">
+				&lt;/div>									
+			&lt;/div>		
+		</pre>
+		<pre class="js">
+			const inp = {
+				from: document.getElementById('from-5'),
+				to: document.getElementById('to-5'),
+				min: document.getElementById('min-5'),
+				max: document.getElementById('max-5'),
+				result: document.getElementById('result-5')
+			}
+			const btn = {
+				from: document.getElementById('set-from-5'),
+				to: document.getElementById('set-to-5'),
+				min: document.getElementById('set-min-5'),
+				max: document.getElementById('set-max-5'),
+			};
+	
+			const toEuro = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
+			const callbackFn = (from, to) => inp.result.value = `from:${from} to:${to}`;
+			const slider = DoubleRange.create({
+				selector: "#slider-5",
+				min: 5400,
+				max: 19600,
+				from: 8398,
+				to: 15325,
+				step: 1,
+				label: 'Example 5',
+				formatter: toEuro,
+				delay: 150,
+				callback: callbackFn
+			});
+	
+			const pointError = (el) => {
+				el.value = "";
+				el.classList.add("error");
+				setTimeout(()=>{el.classList.remove("error");},300);
+			};
+	
+			btn.from.addEventListener('click', () => {
+				if (!slider.setFrom(parseInt(inp.from.value))) {
+					// setFrom and setTo return false if the value is invalid
+					pointError(inp.from);
+				}
+			});
+	
+			btn.to.addEventListener('click', () => {
+				if (!slider.setTo(parseInt(inp.to.value))) {
+					pointError(inp.to);
+				}
+			});
+	
+			btn.min.addEventListener('click', () => {
+				// setMin and setMax throw an error if the value is invalid
+				try {
+					slider.setMin(parseInt(inp.min.value));
+				}
+				catch (e) {
+					console.error(e);
+					pointError(inp.min);
+				}
+			});
+	
+			btn.max.addEventListener('click', () => {
+				try {
+					slider.setMax(parseInt(inp.max.value));
+				}
+				catch (e) {
+					console.error(e);
+					pointError(inp.max);
+				}
+			});	
+		</pre>
+		<pre class="css">
+			#slider-5 .double-range label
+			{
+				font-size: 13px;
+				padding: 0px;
+				text-shadow:0px 0px 1px;
+				letter-spacing: 1px;
+			}
+			
+			#slider-5 .double-range label.from>span
+			{
+				color:#06203b;
+			}
+			
+			#slider-5 .double-range label.to>span
+			{
+				color:#194a7e;
+			}	
+		</pre>
+		<div id="slider-5"></div>
+		<div class="fields">
+			<div>
+				<input type="text" id="from-5" placeholder="" size="6" maxlength="6">
+				<button id="set-from-5">setFrom()</button>
+			</div>
+			<div>
+				<input type="text" id="to-5" placeholder="" size="6" maxlength="6">
+				<button id="set-to-5">setTo()</button>
+			</div>		
+			<div>
+				<input type="text" id="min-5" placeholder="" size="6" maxlength="6">
+				<button id="set-min-5">setMin()</button>
+			</div>	
+			<div>
+				<input type="text" id="max-5" placeholder="" size="6" maxlength="6">
+				<button id="set-max-5">setMax()</button>
+			</div>		
+			<div>
+				<label for='callback-5'>result:</label>
+				<input type="text" id="result-5" placeholder="" size="6" maxlength="6">
+			</div>									
+		</div>
+</div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
       demo.init();

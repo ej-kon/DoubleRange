@@ -45,4 +45,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.5] - 2025-08-30
 ### Added
 - .gitattributes for GitHub main language (JavaScript) recognition  
- 
+
+## [1.0.6] - 2025-09-01
+### Added
+- More examples in the demo page, (e.g. date range slider) 
+
+### Changed
+- double-range.js optimize validation for setTo and setFrom , and stop callback during drag
+- double-range.ts same as above

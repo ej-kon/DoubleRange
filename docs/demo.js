@@ -8,6 +8,7 @@ const demo = { a: 5 };
 		setExample2();
 		setExample3();
 		setExample4();
+		setExample5();
 	}
 
 	const setExample1 = () => {
@@ -119,6 +120,78 @@ const demo = { a: 5 };
 			delay: 500,
 			callback: callbackFn
 		});
+	};
+
+	const setExample5 = () => {
+		const inp = {
+			from: document.getElementById('from-5'),
+			to: document.getElementById('to-5'),
+			min: document.getElementById('min-5'),
+			max: document.getElementById('max-5'),
+			result: document.getElementById('result-5')
+		}
+		const btn = {
+			from: document.getElementById('set-from-5'),
+			to: document.getElementById('set-to-5'),
+			min: document.getElementById('set-min-5'),
+			max: document.getElementById('set-max-5'),
+		};
+
+		const toEuro = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
+		const callbackFn = (from, to) => inp.result.value = `from:${from} to:${to}`;
+		const slider = DoubleRange.create({
+			selector: "#slider-5",
+			min: 5400,
+			max: 19600,
+			from: 8398,
+			to: 15325,
+			step: 1,
+			label: 'Example 5',
+			formatter: toEuro,
+			delay: 150,
+			callback: callbackFn
+		});
+
+		const pointError = (el) => {
+			el.value = "";
+			el.classList.add("error");
+			setTimeout(() => { el.classList.remove("error"); }, 300);
+		};
+
+		btn.from.addEventListener('click', () => {
+			if (!slider.setFrom(parseInt(inp.from.value))) {
+				// setFrom and setTo return false if the value is invalid
+				pointError(inp.from);
+			}
+		});
+
+		btn.to.addEventListener('click', () => {
+			if (!slider.setTo(parseInt(inp.to.value))) {
+				pointError(inp.to);
+			}
+		});
+
+		btn.min.addEventListener('click', () => {
+			// setMin and setMax throw an error if the value is invalid
+			try {
+				slider.setMin(parseInt(inp.min.value));
+			}
+			catch (e) {
+				console.error(e);
+				pointError(inp.min);
+			}
+		});
+
+		btn.max.addEventListener('click', () => {
+			try {
+				slider.setMax(parseInt(inp.max.value));
+			}
+			catch (e) {
+				console.error(e);
+				pointError(inp.max);
+			}
+		});
+
 
 	};
 }).call(demo);

@@ -197,3 +197,88 @@ pre.css::before
 	color:#990022;
 }
 
+
+#slider-5 .double-range { 
+	--thumb-from-bg: #06203b; 
+	--thumb-to-bg: #194a7e; 
+	--range-bar-bg: linear-gradient(to right, #06203b, #194a7e);
+	width: 100%;
+}
+
+#slider-5 .double-range label
+{
+	font-size: 13px;
+	padding: 0px;
+	text-shadow:0px 0px 1px;
+	letter-spacing: 1px;
+}
+
+#slider-5 .double-range label.from>span
+{
+	color:#06203b;
+}
+
+#slider-5 .double-range label.to>span
+{
+	color:#194a7e;
+}
+.fields
+{
+	text-align: center;
+	margin: 5px 0px;
+}
+
+.fields>div
+{
+	display: inline-block;
+	vertical-align: top;
+	margin: 0px 10px;
+	line-height: 30px;
+}
+
+.fields>div>*
+{
+    display: inline-block;
+    vertical-align: top;	
+}
+
+.fields>div>label
+{
+	font-size: 16px;
+}
+
+.fields>div>input {
+    height: 30px;
+    line-height: 20px;
+    margin: 0px 3px 0px 0px;
+    padding: 6px 3px 2px 5px;
+    border: 1px solid #555555;
+    outline: none;
+    text-align: right;
+    font-size: 16px;
+    width: 80px;
+    letter-spacing: 1px;
+    transition: all 200ms linear;
+    -webkit-transition: all 200ms linear;
+    box-sizing: border-box;
+}
+
+.fields>div>input#result-5
+{
+	width: 200px;
+}
+
+.fields>div>input.error
+{
+	box-shadow:0px 0px 2px 1px #770000; 
+	border: 1px solid #770000;
+}
+
+.fields>div>button {
+    font-size: 15px;
+    font-family: monospace;
+    height: 30px;
+    line-height: 28px;
+    cursor: pointer;
+}
+

@@ -732,7 +732,10 @@ class DoubleRange {
 		if (this.#callbackTimer) {
 			clearTimeout(this.#callbackTimer);
 		}
-
+		if(this.#duringDrag)
+		{
+			return;
+		}
 		this.#callbackTimer = window.setTimeout(() => {
 			if (this.#callback) {
 				this.#callback(this.#fromValue, this.#toValue);
@@ -855,8 +858,14 @@ class DoubleRange {
 			return false;
 		}
 		if (from >= this.#toValue) {
+			this.setFrom(this.#toValue - this.#step); 
 			return false;
 		}
+		if(from === this.#toValue)
+		{
+			return false; 
+		}
+				
 		if (this.#beforeFromChange !== null
 			&& !this.#beforeFromChange(from, this.#toValue)) {
 			return false;
@@ -900,9 +909,14 @@ class DoubleRange {
 			return false;
 		}
 		if (to <= this.#fromValue) {
+			this.setTo(this.#fromValue + this.#step);
 			return false;
 		}
-
+		if(to === this.#toValue)
+		{
+			return false; 
+		}
+		
 		if (this.#beforeToChange !== null
 			&& !this.#beforeToChange(this.#fromValue, to)) {
 			return false;
